@@ -1,262 +1,209 @@
 <!DOCTYPE html>
-
-
-
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Cardiac Kiosk</title>
-
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>لوحة النداء (Big Screen)</title>
 <style>
-  :root{--blue:#2563eb;--ink:#0f172a;--muted:#6b7280}
-  *{box-sizing:border-box}
-  body{margin:0;background:#f5f7fb;font-family:-apple-system,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink)}
-  body{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:100vh;
-}
-  .wrap{margin:auto;width:min(960px,96vw);background:#eef2f7;padding:28px;border-radius:18px}
-  .sub{font-size:18px;text-align:center;color:#334155;margin-bottom:6px}
-  h1{font-size:clamp(40px,8.5vw,90px);margin:10px 0;text-align:center}
-  form{display:flex;flex-direction:column;gap:14px;align-items:center}
-  label{font-weight:700}
-  input{width:100%;max-width:680px;padding:16px 18px;font-size:22px;border-radius:14px;border:2px solid #cbd5e1;letter-spacing:1px;text-align:center}
-  input::placeholder{color:#9aa3b2;opacity:.9;text-align:center}
-  input:focus{outline:none;border-color:#93c5fd;box-shadow:0 0 0 3px rgba(59,130,246,.15)}
-  .btn{background:var(--blue);color:#fff;font-weight:800;border:0;padding:14px 22px;border-radius:14px;font-size:22px;cursor:pointer}
-  .next{margin-top:8px;text-align:center;color:var(--muted)}
-  .next b{color:#111}
-  .err{min-height:22px;color:#dc2626;text-align:center}
-
-  /* ===== قالب الطباعة ===== */
-  @media print{
-    @page{ size:80mm auto; margin:0 }
-    body > *{ display:none !important }
-    #ticket{ display:block !important;width:100%;padding:10mm 6mm;font-family:"Tahoma","Segoe UI","Arial",sans-serif;direction:rtl;text-align:center }
-    #tTitle{ font-family:Arial,Helvetica,sans-serif;font-size:16pt;margin:0 0 6mm }
-    #tHello{ display:block;width:100%;font-size:30pt;line-height:1.1;margin:0 0 4mm }
-    #tSub{   display:block;width:100%;font-size:14pt;line-height:1.2;margin:0 0 6mm }
-    #tNum{   display:block;width:100%;font-size:56pt;line-height:1.0;margin:0 0 6mm }
-    #tMrn{   display:block;width:100%;font-size:14pt;margin:0 0 3mm }
-    #tWait{  display:block;width:100%;font-size:13pt;margin:0 0 5mm }
-    #tLine{  height:2px;background:#000;margin:3mm 0 }
-    #tThanks{display:block;width:100%;font-size:20pt;margin:2mm 0 3mm }
-    #tTs{    display:block;width:100%;font-size:11pt;margin:0 }
+  :root{
+    --bg:#0b1220; --card:#111827; --ink:#e5e7eb; --muted:#9ca3af;
+    --accent:#22c55e;
   }
-  /* شاشة النداء داخل الكيوسك (لا تُطبع) */
-#callDisplay {
-  display: none;
-  background: #000;
-  color: #fff;
-  text-align: center;
-  padding: 40px 10px;
-  border-radius: 16px;
-  font-weight: 700;
-  width: 100%;
-  max-width: 680px;
-  margin: 40px auto 40px; /* مسافة متوازنة فوق وتحت */
-  line-height: 1.5;
-  font-size: clamp(28px, 5vw, 44px);
-  box-sizing: border-box;
-}
-#callDisplay b {
-  font-weight: 800;
-}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",Tahoma,Arial,sans-serif}
+  header{padding:14px 18px;text-align:center;font-weight:900;letter-spacing:.5px}
+  header h1{margin:0;font-size:clamp(20px,3.5vw,32px)}
+  .hint{ text-align:center; color:#9ca3af; margin:6px 0 2px; font-size:clamp(12px,2.6vw,14px);}
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px,1fr));
+    gap:18px; padding:18px; max-width:1600px; margin:0 auto 20px;
+  }
+  .card{
+    background:linear-gradient(180deg,#0f172a 0%, #0b1220 100%);
+    border:1px solid #1f2937; border-radius:16px; padding:18px 18px 22px;
+    position:relative; overflow:hidden;
+  }
+  .title{
+    display:flex; align-items:center; justify-content:space-between;
+    font-weight:900; margin-bottom:8px; color:#cbd5e1;
+  }
+  .title .tag{font-size:clamp(16px,3vw,22px)}
+  .title .time{font-size:clamp(11px,2vw,13px); color:var(--muted)}
+  .big{
+    text-align:center;
+    font-size:clamp(64px,10vw,120px);
+    line-height:1; font-weight:900; letter-spacing:.02em;
+    color:#ffffff;
+  }
+  .pill{
+    position:absolute; inset:auto 14px 14px auto; background:#0ea5e9;
+    color:#001019; font-weight:900; padding:6px 10px; border-radius:999px;
+    font-size:12px; opacity:.9;
+  }
+  .flash{ animation:flash 900ms ease-out 1; }
+  @keyframes flash{
+    0%{ box-shadow:0 0 0 0 rgba(34,197,94,.7); transform:scale(1.0); }
+    50%{ box-shadow:0 0 40px 4px rgba(34,197,94,.55); transform:scale(1.01); }
+    100%{ box-shadow:0 0 0 0 rgba(34,197,94,0); transform:scale(1.0); }
+  }
+  .num{font-variant-numeric: tabular-nums}
 </style>
 
-<!-- Firebase (compat) -->
+<!-- Firebase compat -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 </head>
 <body>
-<div class="wrap">
-  <div class="sub">Cardiac Pharmacy Ticket</div>
-  <h1>مرحبًا</h1>
 
-  <form id="f" autocomplete="off">
-    <label for="mrn" class="sub" style="margin-top:8px">الرجاء إدخال رقم الملف (MRN)</label>
-    <input id="mrn" inputmode="numeric" placeholder="MRN" />
-    <button class="btn" type="submit">طباعة التذكرة / Print Ticket</button>
-    <div class="next">الرقم التالي: <b><span id="nextNum">-</span></b></div>
-    <div class="err" id="err"></div>
-    <div class="sub">الرجاء الانتظار قليلًا لحين طباعة التذكرة</div>
-  </form>
-
-  <!-- هنا المستطيل -->
-  <div id="callDisplay">
-    تذكرة رقم (<b id="dispNum"></b>)<br>
-    الرجاء التوجه للشباك
-  </div>
+<!-- ✅ الخطوة 3: تفعيل الصوت يدويًا مرة واحدة -->
+<div id="soundGate" style="position:fixed;inset:0;background:#000a;color:#fff;display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column">
+  <div style="margin-bottom:10px;font-weight:700">اضغطي لتفعيل الصوت</div>
+  <button onclick="document.getElementById('soundGate').style.display='none'; try{speechSynthesis.cancel()}catch(e){}" style="padding:10px 16px;border:0;border-radius:10px;background:#2563eb;color:#fff;font-weight:800;cursor:pointer">تفعيل الصوت</button>
 </div>
 
-  <!-- قالب التذكرة (يظهر فقط أثناء الطباعة) -->
-  <div id="ticket" style="display:none">
-    <div id="tTitle">Cardiac Pharmacy Ticket</div>
-    <div id="tHello">مرحبًا</div>
-    <div id="tSub">رقمك هو</div>
-    <div id="tNum"></div>
-    <div id="tMrn"></div>
-    <div id="tWait"></div>
-    <div id="tLine"></div>
-    <div id="tThanks">شكرًا لانتظارك</div>
-    <div id="tTs"></div>
-  </div>
-<body>
+<header>
+  <h1>لوحة النداء</h1>
+  <div class="hint">تظهر تحت كل شباك آخر تذكرة مناداة • اضغطي F11 لملء الشاشة</div>
+</header>
+
+<div id="grid" class="grid"></div>
+
 <script>
-(function(){
-  const PASS = "kpcreg";
-  if(!sessionStorage.getItem("authOK")){
-    const p = prompt("Please enter password:");
-    if(p !== PASS){
-      alert("Incorrect password. Access denied.");
-      document.body.innerHTML = "<h2 style='text-align:center;margin-top:40vh'>Access Denied</h2>";
-      throw new Error("Blocked"); // يوقف بقية الكود
-    }
-    sessionStorage.setItem("authOK","true");
-  }
-})();
-</script>
-<script>
-(function(){
-  // ===== Firebase =====
-  const cfg={apiKey:"AIzaSyCWWnMsge75Q3_MDF9Aj9wo4C5KD6RVGfw",authDomain:"q-matic-b7d77.firebaseapp.com",databaseURL:"https://q-matic-b7d77-default-rtdb.firebaseio.com",projectId:"q-matic-b7d77",storageBucket:"q-matic-b7d77.appspot.com",messagingSenderId:"908187704899",appId:"1:908187704899:web:b8bcf33cda90bafe81bef6"};
-  firebase.initializeApp(cfg);
-  const db=firebase.database();
-  const ROOT="cardiac_demo";
+/* ===== إعداد Firebase / نفس بيئتكم ===== */
+const ROOT = "cardiac_demo";
+const cfg = {
+  apiKey:"AIzaSyCWWnMsge75Q3_MDF9Aj9wo4C5KD6RVGfw",
+  authDomain:"q-matic-b7d77.firebaseapp.com",
+  databaseURL:"https://q-matic-b7d77-default-rtdb.firebaseio.com",
+  projectId:"q-matic-b7d77",
+  storageBucket:"q-matic-b7d77.appspot.com",
+  messagingSenderId:"908187704899",
+  appId:"1:908187704899:web:b8bcf33cda90bafe81bef6"
+};
+firebase.initializeApp(cfg);
+const db = firebase.database();
 
-  // عناصر
-  const f=document.getElementById('f');
-  const mrnInput=document.getElementById('mrn');
-  const err=document.getElementById('err');
-  const nextNumEl=document.getElementById('nextNum');
+/* ===== إعدادات العرض ===== */
+const MAX_WINDOWS = 3; // عدّليها حسب عدد الشبابيك
 
-  // تحويل الأرقام العربية إلى إنجليزية + تنظيف
-  const ar2en = s => String(s).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[^\d]/g,'');
-  // تحويل إنجليزي إلى عربي لو احتجنا
-  const toAr = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
-
-  // نص “أمامك …” بصياغة صحيحة
-  function waitingText(n){
-    if(n===0) return 'لا يوجد أشخاص في الانتظار';
-    if(n===1) return 'أمامك شخص واحد في الانتظار';
-    if(n===2) return 'أمامك شخصان في الانتظار';
-    return `أمامك ${toAr(n)} أشخاص في الانتظار`;
-  }
-
-  // يحسب next & waiting (printed && !served && !noshow)
-  async function pickNextAndWaiting(){
-    const [sp, ss, sn] = await Promise.all([
-      db.ref(`${ROOT}/printed`).get(),
-      db.ref(`${ROOT}/served`).get(),
-      db.ref(`${ROOT}/noshow`).get()
-    ]);
-    const P=sp.val()||{}, S=ss.val()||{}, N=sn.val()||{};
-
-    // next هو أول رقم غير موجود في أي من الجداول
-    let next=1;
-    while(next<=1000 && (P[next]||S[next]||N[next])) next++;
-
-    // المنتظرين: مطبوع قبل next وغير مخدّم وغير NoShow
-    let waiting=0;
-    for(let i=1;i<next;i++){
-      if(P[i] && !S[i] && !N[i]) waiting++;
-    }
-    return {next,waiting};
-  }
-
-  // معاينة الرقم التالي
-  async function updateNextPreview(){
-    const {next}=await pickNextAndWaiting();
-    nextNumEl.textContent = toAr(next);
-  }
-  updateNextPreview();
-
-  // مستمع Restart من الأوبريتور
-  db.ref(`${ROOT}/resetFlag`).on('value', s=>{
-    if(!s.exists()) return;
-    mrnInput.value='';
-    err.textContent='';
-    updateNextPreview();
-  });
-
-  // إرسال/طباعة
-  f.addEventListener('submit', async (e)=>{
-    e.preventDefault();
-    err.textContent='';
-
-    const mrn = ar2en(mrnInput.value.trim());
-    if (!mrn || mrn.trim() === "") return err.textContent = "الرجاء إدخال رقم الملف";
-    if (mrn.length < 3) {
-  err.textContent = "الرجاء إدخال رقم ملف صحيح";
-  return; // يوقف العملية بالكامل وما يطبع
+/* ===== أدوات ===== */
+function toArDigits(n){ return String(n).replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]); }
+function timeHHMM(ts){
+  const d = new Date(ts||Date.now());
+  const hh = String(d.getHours()).padStart(2,'0');
+  const mm = String(d.getMinutes()).padStart(2,'0');
+  return `${hh}:${mm}`;
 }
 
-    // احسبي next الحقيقي لحظة الطباعة + المنتظرين قبل هذا الرقم
-    const {next,waiting} = await pickNextAndWaiting();
-    const ticketNum = next;
+/* ===== بناء الكروت ===== */
+const grid = document.getElementById('grid');
+const cards = {};
+for(let w=1; w<=MAX_WINDOWS; w++){
+  const c = document.createElement('div');
+  c.className = 'card';
+  c.innerHTML = `
+    <div class="title">
+      <div class="tag">شباك <span class="num">${toArDigits(w)}</span></div>
+      <div class="time" id="t${w}">—</div>
+    </div>
+    <div class="big num" id="n${w}">—</div>
+    <div class="pill">آخر نداء</div>
+  `;
+  grid.appendChild(c);
+  cards[w] = { root: c, n: c.querySelector("#n"+w), t: c.querySelector("#t"+w) };
+}
 
-    // سجّلي مطبوع + MRN + latestPrinted
-    await Promise.all([
-      db.ref(`${ROOT}/printed/${ticketNum}`).set(true),
-      db.ref(`${ROOT}/mrn/${ticketNum}`).set(mrn),
-      db.ref(`${ROOT}/latestPrinted`).set({number:ticketNum,mrn})
-    ]);
+/* ===== تحديث الكرت ===== */
+function updateWindowCard(w, ticket, ts){
+  const card = cards[w];
+  if(!card) return;
+  card.n.textContent = ticket? toArDigits(ticket) : "—";
+  card.t.textContent = ts ? toArDigits(timeHHMM(ts)) : "—";
+  card.root.classList.remove('flash'); void card.root.offsetWidth; card.root.classList.add('flash');
+}
 
-// 4) جهزي التذكرة
-// نحول الأرقام إلى إنجليزية فقط
-const enNum = n => String(n).replace(/[٠-٩]/g, d => dMap[d]);
+/* =========================
+   ✅ الخطوة 1: نسخ دوال النطق
+   ========================= */
 
-document.getElementById('tNum').textContent = enNum(ticketNum);
-document.getElementById('tMrn').textContent = `رقم الملف: ${enNum(mrn)}`;
-document.getElementById('tWait').textContent = waiting === 0
-  ? 'لا يوجد أحد أمامك'
-  : waiting === 1 ? 'أمامك شخص واحد في الانتظار'
-  : waiting === 2 ? 'أمامك شخصان في الانتظار'
-  : `أمامك ${enNum(waiting)} أشخاص في الانتظار`;
+/* 1.1 دالة speakOnce */
+function speakOnce(text) {
+  return new Promise(resolve => {
+    if (!('speechSynthesis' in window)) { resolve(); return; }
 
-const now = new Date();
-const hh = now.getHours()%12 || 12, mm = String(now.getMinutes()).padStart(2,'0');
-const ampm = now.getHours()>=12 ? 'PM':'AM';
-const date = `${now.getMonth()+1}/${now.getDate()}/${now.getFullYear()}`;
-document.getElementById('tTs').textContent = `${hh}:${mm}${ampm} , ${date}`;
+    // حذف التنوين والسكون
+    text = text.replace(/[ٌٍْـ]/g, "").replace(/\s+/g, " ").trim();
 
-// 5) اطبعي
-window.print();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'ar-SA';
+    u.rate = 1.1;
+    u.pitch = 1.0;
 
-    // نفرّغ الحقل ونحدّث المعاينة
-    mrnInput.value='';
-    updateNextPreview();
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(v => /naayf|naif|hoda|maged|arabic/i.test(v.name)) ||
+              voices.find(v => /ar(-|_)?[A-Z]{2}/i.test(v.lang)) ||
+              voices[0];
+    if (v) u.voice = v;
+
+    u.onend = resolve;
+    u.onerror = resolve;
+    window.speechSynthesis.speak(u);
   });
-})();
-</script>
-  <script>
-(function(){
-  const ROOT="cardiac_demo"; // نفس الجذر
-  const disp=document.getElementById('callDisplay');
-  const dispNum=document.getElementById('dispNum');
-  const db=firebase.database();
+}
 
-db.ref(`${ROOT}/latest`).on('value', async s=>{
-  const v=s && s.val();
-  if(!v || !v.number){ disp.style.display='none'; return; }
-  const n=v.number;
-  const ns=await db.ref(`${ROOT}/noshow/${n}`).get();
-  if(ns.exists()){ disp.style.display='none'; return; }
+/* 1.2 دالة fixNumberWord */
+function fixNumberWord(n) {
+  const map = {
+    1: "واحِد",
+    2: "اِثنان",
+    3: "ثَلاثَة",
+    4: "أَربَعَة",
+    5: "خَمسَة",
+    6: "سِتَّة",
+    7: "سَبعَة",
+    8: "ثَمانِيَة",
+    9: "تِسعَة",
+    10: "عَشَرَة"
+  };
+  return map[n] ? map[n] : toArDigits(n);
+}
 
-  dispNum.textContent = n;
+/* 1.3 دالة buildFastPhrase */
+function buildFastPhrase(n, w) {
+  const z = "\u200C";
+  const num = toArDigits(n);
+  const wnum = (w == null || w === "") ? "" : fixNumberWord(w);
 
-  // جلب رقم الشباك من latest أو من operatorWindow
-  const winNum = v.window || v.windowNum || null;
-  const winText = winNum ? `الرجاء التوجه للشباك رقم (${winNum})` : `الرجاء التوجه للشباك`;
+  if (!wnum)
+    return `تَذْكِرَةْ رقم${z} ${num}`;
+  return `تَذْكِرَةْ رقم${z} ${num} الرجاء${z} التوجه${z} إلى${z} الشُبّاك رقم${z} ${wnum}`;
+}
 
-  disp.innerHTML = `تذكرة رقم (<b id="dispNum">${n}</b>)<br>${winText}`;
-  disp.style.display = 'block';
-});
+/* =========================
+   ✅ الخطوة 2: تشغيل النطق عند كل نداء
+   ========================= */
+const bootTs = Date.now() - 10000;
+db.ref(`${ROOT}/calls`)
+  .orderByChild('ts')
+  .startAt(bootTs)
+  .on('child_added', snap=>{
+    const v = snap.val()||{};
+    const n = Number(v.number);
+    const w = (v.window===0||v.window)? Number(v.window) : null;
 
-})();
+    if(!n || !w || w<1 || w>MAX_WINDOWS) return;
+
+    // تحديث الكرت
+    updateWindowCard(w, n, v.ts || Date.now());
+
+    // نطق الجملة
+    const phrase = buildFastPhrase(n, w);
+    speakOnce(phrase);
+  });
+
+/* لتحديث قائمة الأصوات عند جاهزيتها (اختياري) */
+window.speechSynthesis.onvoiceschanged = ()=>{ /* لا شيء مطلوب، مجرد إيقاظ */ };
 </script>
 </body>
 </html>
