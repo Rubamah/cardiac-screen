@@ -2,99 +2,33 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>لوحة النداء</title>
 <style>
   :root{
-    --bg:#0b1220;        /* خلفية داكنة مناسبة للتلفاز */
-    --panel:#0f172a;     /* بطاقات */
-    --ink:#e5e7eb;       /* نص أبيض فاتح */
-    --accent:#38bdf8;    /* سماوي للأرقام */
-    --muted:#94a3b8;     /* نص ثانوي */
-    --sep:#1f2937;       /* فواصل */
+    --bg:#0b1324; --panel:#0f172a; --ink:#ffffff;
+    --accent:#38bdf8; --divider:#334155;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
-    margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    overflow:hidden;   /* شاشة تلفاز */
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    display:flex; flex-direction:column; min-height:100vh;
   }
+  .header{padding:min(2.2vh,24px) min(2vw,24px); text-align:center; background:#111827; border-bottom:2px solid var(--divider);}
+  .header h1{margin:0; font-weight:900; letter-spacing:.5px; font-size:clamp(20px,4.8vw,64px);}
 
-  /* حاوية المحتوى بعرض أفقي للتلفاز 49" */
-  .wrap{
-    max-width: 1920px;
-    height: 100vh;
-    margin: 0 auto;
-    padding: 2vh 2vw 3vh;
-    display: grid;
-    grid-template-rows: auto 1fr;
-    gap: 2vh;
-  }
+  .rows{flex:1; display:flex; flex-direction:column;}
+  .row{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+       padding:min(2vh,28px) min(2vw,28px); position:relative;}
+  .row + .row{border-top:2.5px solid var(--divider);}
 
-  /* العنوان */
-  .title{
-    background:#111827;
-    border-radius: 18px;
-    padding: 1.4vh 2vw;
-    text-align:center;
-    font-weight:900;
-    letter-spacing:.5px;
-    font-size: clamp(28px, 4.8vh, 64px);
-  }
+  .label{font-weight:900; opacity:.95; line-height:1.1; margin-bottom:.4em; font-size:clamp(22px,4.2vw,56px);}
+  .ticket{font-weight:900; color:var(--accent); line-height:1; letter-spacing:.5px; font-size:clamp(42px,16vw,180px);}
 
-  /* الشبّاكـات */
-  .columns{
-    display:grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2.2vh;
-    height: 100%;
-  }
-  .card{
-    background:var(--panel);
-    border-radius: 22px;
-    padding: 2.5vh 2vw;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
-    border: 2px solid var(--sep);
-  }
-  .cardHeader{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap: 1vw;
-  }
-  .winLabel{
-    font-weight:900;
-    font-size: clamp(22px, 3.4vh, 44px);
-  }
-  .lastTime{
-    color:var(--muted);
-    font-size: clamp(16px, 2.3vh, 28px);
-  }
-  .bigNum{
-    text-align:center;
-    font-weight:900;
-    color:var(--accent);
-    font-size: clamp(80px, 17vh, 240px); /* ضخمة للتلفاز */
-    line-height: 1;
-    letter-spacing: .02em;
-  }
-  .dash{
-    opacity:.35;
-  }
-
-  /* زر بوابة الصوت */
-  #soundGate{
-    position:fixed; inset:0; background:#000c; color:#fff;
-    display:flex; align-items:center; justify-content:center; flex-direction:column; gap:16px;
-    z-index:9999; text-align:center; padding:24px;
-    font-size: clamp(18px, 2.8vh, 28px);
-  }
-  #soundGate button{
-    padding:12px 22px; border-radius:12px; border:0; cursor:pointer;
-    background:#2563eb; color:#fff; font-weight:800; font-size: clamp(18px, 2.6vh, 26px);
-  }
+  .flash{animation:flash 900ms ease-out;}
+  @keyframes flash{0%{transform:scale(.98); filter:brightness(1.6);} 100%{transform:scale(1); filter:brightness(1);}}
 </style>
 
 <!-- Firebase compat -->
@@ -103,48 +37,32 @@
 </head>
 <body>
 
-<div class="wrap">
-  <div class="title">النداء الحالي</div>
-
-  <div class="columns">
-    <!-- شباك 1 -->
-    <div class="card" id="w1">
-      <div class="cardHeader">
-        <div class="winLabel">شباك 1</div>
-        <div class="lastTime" id="t1">—</div>
-      </div>
-      <div class="bigNum dash" id="n1">—</div>
-    </div>
-
-    <!-- شباك 2 -->
-    <div class="card" id="w2">
-      <div class="cardHeader">
-        <div class="winLabel">شباك 2</div>
-        <div class="lastTime" id="t2">—</div>
-      </div>
-      <div class="bigNum dash" id="n2">—</div>
-    </div>
-
-    <!-- شباك 3 -->
-    <div class="card" id="w3">
-      <div class="cardHeader">
-        <div class="winLabel">شباك 3</div>
-        <div class="lastTime" id="t3">—</div>
-      </div>
-      <div class="bigNum dash" id="n3">—</div>
-    </div>
-  </div>
+<!-- زر تفعيل الصوت مرّة واحدة -->
+<div id="soundGate" style="position:fixed;inset:0;background:#000a;color:#fff;display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column">
+  <div style="font-size:clamp(16px,3.6vw,28px);margin-bottom:12px">اضغط “تفعيل الصوت” للسماح بالنطق</div>
+  <button id="enableBtn" style="padding:12px 18px;border:0;border-radius:10px;background:#2563eb;color:#fff;font-weight:800;cursor:pointer;font-size:clamp(14px,3.2vw,20px)">تفعيل الصوت</button>
 </div>
 
-<!-- بوابة تفعيل الصوت -->
-<div id="soundGate">
-  <div>اضغط “تفعيل الصوت” مرة واحدة للسماح بالتشغيل الصوتي.</div>
-  <button id="enableBtn">تفعيل الصوت</button>
+<div class="header"><h1>النداء الحالي</h1></div>
+
+<div class="rows">
+  <div class="row" id="w1">
+    <div class="label">شباك 1</div>
+    <div class="ticket" id="t1">—</div>
+  </div>
+  <div class="row" id="w2">
+    <div class="label">شباك 2</div>
+    <div class="ticket" id="t2">—</div>
+  </div>
+  <div class="row" id="w3">
+    <div class="label">شباك 3</div>
+    <div class="ticket" id="t3">—</div>
+  </div>
 </div>
 
 <script>
 /* ===== Firebase ===== */
-const cfg = {
+const cfg={
   apiKey:"AIzaSyCWWnMsge75Q3_MDF9Aj9wo4C5KD6RVGfw",
   authDomain:"q-matic-b7d77.firebaseapp.com",
   databaseURL:"https://q-matic-b7d77-default-rtdb.firebaseio.com",
@@ -157,89 +75,68 @@ firebase.initializeApp(cfg);
 const db   = firebase.database();
 const ROOT = "cardiac_demo";
 
-/* ===== أدوات مساعدة ===== */
-function toArDigits(n){ return String(n).replace(/\d/g, d=>"٠١٢٣٤٥٦٧٨٩"[d]); }
-function fmtTime(ts){
-  const d=new Date(ts||Date.now());
-  const h=d.getHours().toString().padStart(2,"0");
-  const m=d.getMinutes().toString().padStart(2,"0");
-  return `${h}:${m}`;
-}
-function updateWindowCard(w, num, ts){
-  if (![1,2,3].includes(Number(w))) return;
-  const nEl = document.getElementById('n'+w);
-  const tEl = document.getElementById('t'+w);
-  if (!nEl || !tEl) return;
-  nEl.textContent = toArDigits(num);
-  nEl.classList.remove('dash');
-  tEl.textContent = fmtTime(ts);
-}
+/* ===== أدوات عرض ===== */
+function toArDigits(n){ return String(n).replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]); }
+function flash(el){ el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
 
-/* ===== الصوت (نفس منطق announcer) ===== */
+/* ===== الصوت (نفس إعدادات announcer) ===== */
 let ttsReady=false;
-document.getElementById('enableBtn').onclick = ()=>{
+document.getElementById('enableBtn').onclick=()=>{
   try{ speechSynthesis.cancel(); }catch(e){}
   ttsReady=true;
   document.getElementById('soundGate').style.display='none';
 };
-function pickArabicVoice(){
-  const v=speechSynthesis.getVoices()||[];
-  return v.find(x=>/naayf|naif|hoda|maged|arabic/i.test(x.name))
-      || v.find(x=>/ar(-|_)?[A-Z]{2}/i.test(x.lang))
-      || v[0] || null;
-}
 function speakOnce(text){
-  return new Promise(res=>{
-    if(!ttsReady || !('speechSynthesis' in window)){ res(); return; }
-    text = text.replace(/[ٌٍْـ]/g,"").replace(/\s+/g," ").trim();
+  return new Promise(resolve=>{
+    if(!ttsReady || !('speechSynthesis' in window)){ resolve(); return; }
+    text = text.replace(/[ٌٍْـ]/g,"").replace(/\s+/g," ").trim(); // إزالة التنوين والسكون
     const u = new SpeechSynthesisUtterance(text);
     u.lang='ar-SA'; u.rate=1.1; u.pitch=1.0;
-    const v = pickArabicVoice(); if(v) u.voice=v;
-    u.onend=res; u.onerror=res;
+    const voices=speechSynthesis.getVoices()||[];
+    const v = voices.find(v=>/naayf|naif|hoda|maged|arabic/i.test(v.name))
+         || voices.find(v=>/ar(-|_)?[A-Z]{2}/i.test(v.lang))
+         || voices[0];
+    if(v) u.voice=v;
+    u.onend=resolve; u.onerror=resolve;
     speechSynthesis.speak(u);
   });
 }
 function fixNumberWord(n){
   const map={1:"واحِد",2:"اِثنان",3:"ثَلاثَة",4:"أَربَعَة",5:"خَمسَة",6:"سِتَّة",7:"سَبعَة",8:"ثَمانِيَة",9:"تِسعَة",10:"عَشَرَة"};
-  return map[n]? map[n] : toArDigits(n);
+  return map[n]?map[n]:toArDigits(n);
 }
 function buildFastPhrase(n,w){
   const z="\u200C";
   const num = toArDigits(n);
-  const wnum = (w==null || w==="") ? "" : fixNumberWord(Number(w));
+  const wnum = (w==null||w==="")? "": fixNumberWord(Number(w));
   if(!wnum) return `تَذْكِرَةْ رقم${z} ${num}`;
-  return `تَذْكِرَةْ رقم${z} ${num} الرجاء${z} التوجه${z} إلى${z} الشباك${z} رقم${z} ${wnum}`;
+  return `تَذْكِرَةْ رقم${z} ${num} الرجاء${z} التوجه${z} إلى${z} الشباك رقم${z} ${wnum}`;
 }
 
-/* ===== استماع للطابور وتحديث الأعمدة + النطق ===== */
-const processed = new Set();
-const bootTs = Date.now() - 5000;
-
+/* ===== تحديث الشاشة + نطق الجملة ===== */
+const bootTs = Date.now()-10_000;
 db.ref(`${ROOT}/calls`)
   .orderByChild('ts')
   .startAt(bootTs)
-  .on('child_added', async snap=>{
-    const key = snap.key, v = snap.val()||{};
-    if(processed.has(key)) return;
-    processed.add(key);
-
+  .on('child_added', snap=>{
+    const v = snap.val()||{};
     const n = Number(v.number);
-    let w   = v.window ?? v.windowNum ?? v.win ?? v.counter ?? null;
+    let   w = v.window ?? v.win ?? v.windowNum ?? v.counter ?? null;
 
-    if (typeof w === 'string') {
-      const p = Number(w); w = Number.isNaN(p) ? null : p;
-    }
+    if (typeof w==='string'){ const p=Number(w); w = Number.isNaN(p)? w.trim(): p; }
+    if (![1,2,3].includes(Number(w))) return;
+    if (!n) return;
 
-    if(!n || !w) return;          // لا نعرض بدون شباك
-    updateWindowCard(w, n, v.ts || Date.now());
+    const ticketEl=document.getElementById(`t${w}`);
+    if(!ticketEl) return;
 
-    // نطق سريع مثل announcer
+    ticketEl.textContent = toArDigits(n);
+    flash(ticketEl);
+
+    // النطق بنفس أسلوب announcer
     const phrase = buildFastPhrase(n, w);
     speakOnce(phrase);
   });
-
-/* حمّلي الأصوات إن احتاج */
-window.speechSynthesis.onvoiceschanged = ()=>{ pickArabicVoice(); };
 </script>
 </body>
 </html>
