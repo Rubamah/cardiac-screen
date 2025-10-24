@@ -2,85 +2,148 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Cardiac Display Screen</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>لوحة النداء</title>
 <style>
-  body {
-    margin:0;
-    background:#f5f7fb;
-    font-family:-apple-system,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    color:#0f172a;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    height:100vh;
+  :root{
+    --bg:#0b1220;        /* خلفية داكنة مناسبة للتلفاز */
+    --panel:#0f172a;     /* بطاقات */
+    --ink:#e5e7eb;       /* نص أبيض فاتح */
+    --accent:#38bdf8;    /* سماوي للأرقام */
+    --muted:#94a3b8;     /* نص ثانوي */
+    --sep:#1f2937;       /* فواصل */
   }
-  h1 {
-    font-size:clamp(48px,5vw,72px);
-    font-weight:900;
-    margin:0 0 20px;
-  }
-  .counter {
-    display:flex;
-    gap:60px;
-    justify-content:center;
-    flex-wrap:wrap;
-    max-width:90vw;
-  }
-  .windowBox {
-    background:#000;
-    color:#fff;
-    border-radius:20px;
-    padding:40px 80px;
-    text-align:center;
-    min-width:300px;
-    box-shadow:0 6px 16px rgba(0,0,0,0.25);
-  }
-  .windowBox h2 {
-    margin:0;
-    font-size:clamp(40px,4vw,60px);
-  }
-  .windowBox .ticket {
-    margin-top:20px;
-    font-size:clamp(72px,8vw,120px);
-    font-weight:900;
-    color:#38bdf8;
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    overflow:hidden;   /* شاشة تلفاز */
   }
 
-  #soundGate {
-    position:fixed; inset:0;
-    background:#000a; color:#fff;
-    display:flex; flex-direction:column;
-    align-items:center; justify-content:center;
-    z-index:9999; font:600 24px system-ui;
+  /* حاوية المحتوى بعرض أفقي للتلفاز 49" */
+  .wrap{
+    max-width: 1920px;
+    height: 100vh;
+    margin: 0 auto;
+    padding: 2vh 2vw 3vh;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 2vh;
   }
-  #soundGate button {
-    margin-top:16px;
-    padding:12px 24px;
-    font-size:20px;
-    border:0; border-radius:12px;
-    background:#2563eb; color:#fff;
-    font-weight:800; cursor:pointer;
+
+  /* العنوان */
+  .title{
+    background:#111827;
+    border-radius: 18px;
+    padding: 1.4vh 2vw;
+    text-align:center;
+    font-weight:900;
+    letter-spacing:.5px;
+    font-size: clamp(28px, 4.8vh, 64px);
+  }
+
+  /* الشبّاكـات */
+  .columns{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2.2vh;
+    height: 100%;
+  }
+  .card{
+    background:var(--panel);
+    border-radius: 22px;
+    padding: 2.5vh 2vw;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    border: 2px solid var(--sep);
+  }
+  .cardHeader{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 1vw;
+  }
+  .winLabel{
+    font-weight:900;
+    font-size: clamp(22px, 3.4vh, 44px);
+  }
+  .lastTime{
+    color:var(--muted);
+    font-size: clamp(16px, 2.3vh, 28px);
+  }
+  .bigNum{
+    text-align:center;
+    font-weight:900;
+    color:var(--accent);
+    font-size: clamp(80px, 17vh, 240px); /* ضخمة للتلفاز */
+    line-height: 1;
+    letter-spacing: .02em;
+  }
+  .dash{
+    opacity:.35;
+  }
+
+  /* زر بوابة الصوت */
+  #soundGate{
+    position:fixed; inset:0; background:#000c; color:#fff;
+    display:flex; align-items:center; justify-content:center; flex-direction:column; gap:16px;
+    z-index:9999; text-align:center; padding:24px;
+    font-size: clamp(18px, 2.8vh, 28px);
+  }
+  #soundGate button{
+    padding:12px 22px; border-radius:12px; border:0; cursor:pointer;
+    background:#2563eb; color:#fff; font-weight:800; font-size: clamp(18px, 2.6vh, 26px);
   }
 </style>
 
+<!-- Firebase compat -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 </head>
 <body>
 
-<!-- ✅ تفعيل الصوت -->
-<div id="soundGate">
-  <div>اضغط لتفعيل الصوت</div>
-  <button onclick="document.getElementById('soundGate').style.display='none'; try{speechSynthesis.cancel()}catch(e){}">تفعيل الصوت</button>
+<div class="wrap">
+  <div class="title">النداء الحالي</div>
+
+  <div class="columns">
+    <!-- شباك 1 -->
+    <div class="card" id="w1">
+      <div class="cardHeader">
+        <div class="winLabel">شباك 1</div>
+        <div class="lastTime" id="t1">—</div>
+      </div>
+      <div class="bigNum dash" id="n1">—</div>
+    </div>
+
+    <!-- شباك 2 -->
+    <div class="card" id="w2">
+      <div class="cardHeader">
+        <div class="winLabel">شباك 2</div>
+        <div class="lastTime" id="t2">—</div>
+      </div>
+      <div class="bigNum dash" id="n2">—</div>
+    </div>
+
+    <!-- شباك 3 -->
+    <div class="card" id="w3">
+      <div class="cardHeader">
+        <div class="winLabel">شباك 3</div>
+        <div class="lastTime" id="t3">—</div>
+      </div>
+      <div class="bigNum dash" id="n3">—</div>
+    </div>
+  </div>
 </div>
 
-<h1>شاشة نداء قسم القلب</h1>
-<div class="counter" id="counterGrid"></div>
+<!-- بوابة تفعيل الصوت -->
+<div id="soundGate">
+  <div>اضغط “تفعيل الصوت” مرة واحدة للسماح بالتشغيل الصوتي.</div>
+  <button id="enableBtn">تفعيل الصوت</button>
+</div>
 
 <script>
-/* ========== Firebase ========== */
+/* ===== Firebase ===== */
 const cfg = {
   apiKey:"AIzaSyCWWnMsge75Q3_MDF9Aj9wo4C5KD6RVGfw",
   authDomain:"q-matic-b7d77.firebaseapp.com",
@@ -91,71 +154,92 @@ const cfg = {
   appId:"1:908187704899:web:b8bcf33cda90bafe81bef6"
 };
 firebase.initializeApp(cfg);
-const db = firebase.database();
+const db   = firebase.database();
 const ROOT = "cardiac_demo";
 
-/* ========== إنشاء مربعات الشباك ========== */
-const grid = document.getElementById("counterGrid");
-const windows = [1,2,3,4,5,6];
-for (const w of windows){
-  const box = document.createElement("div");
-  box.className="windowBox";
-  box.id=`win${w}`;
-  box.innerHTML=`<h2>الشُبّاك ${w}</h2><div class="ticket" id="ticket${w}">--</div>`;
-  grid.appendChild(box);
+/* ===== أدوات مساعدة ===== */
+function toArDigits(n){ return String(n).replace(/\d/g, d=>"٠١٢٣٤٥٦٧٨٩"[d]); }
+function fmtTime(ts){
+  const d=new Date(ts||Date.now());
+  const h=d.getHours().toString().padStart(2,"0");
+  const m=d.getMinutes().toString().padStart(2,"0");
+  return `${h}:${m}`;
+}
+function updateWindowCard(w, num, ts){
+  if (![1,2,3].includes(Number(w))) return;
+  const nEl = document.getElementById('n'+w);
+  const tEl = document.getElementById('t'+w);
+  if (!nEl || !tEl) return;
+  nEl.textContent = toArDigits(num);
+  nEl.classList.remove('dash');
+  tEl.textContent = fmtTime(ts);
 }
 
-/* ========== أدوات نطق ========== */
-function toArDigits(n){ return String(n).replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]); }
-
-function speakOnce(text) {
-  return new Promise(resolve=>{
-    if (!('speechSynthesis' in window)) {resolve();return;}
-    text=text.replace(/[ٌٍْـ]/g,"").replace(/\s+/g," ").trim();
-    const u=new SpeechSynthesisUtterance(text);
+/* ===== الصوت (نفس منطق announcer) ===== */
+let ttsReady=false;
+document.getElementById('enableBtn').onclick = ()=>{
+  try{ speechSynthesis.cancel(); }catch(e){}
+  ttsReady=true;
+  document.getElementById('soundGate').style.display='none';
+};
+function pickArabicVoice(){
+  const v=speechSynthesis.getVoices()||[];
+  return v.find(x=>/naayf|naif|hoda|maged|arabic/i.test(x.name))
+      || v.find(x=>/ar(-|_)?[A-Z]{2}/i.test(x.lang))
+      || v[0] || null;
+}
+function speakOnce(text){
+  return new Promise(res=>{
+    if(!ttsReady || !('speechSynthesis' in window)){ res(); return; }
+    text = text.replace(/[ٌٍْـ]/g,"").replace(/\s+/g," ").trim();
+    const u = new SpeechSynthesisUtterance(text);
     u.lang='ar-SA'; u.rate=1.1; u.pitch=1.0;
-    const v=(speechSynthesis.getVoices().find(v=>/naayf|naif|hoda|maged|arabic/i.test(v.name))||
-             speechSynthesis.getVoices().find(v=>/ar(-|_)?[A-Z]{2}/i.test(v.lang))||
-             speechSynthesis.getVoices()[0]);
-    if(v)u.voice=v;
-    u.onend=resolve; u.onerror=resolve;
+    const v = pickArabicVoice(); if(v) u.voice=v;
+    u.onend=res; u.onerror=res;
     speechSynthesis.speak(u);
   });
 }
-
 function fixNumberWord(n){
   const map={1:"واحِد",2:"اِثنان",3:"ثَلاثَة",4:"أَربَعَة",5:"خَمسَة",6:"سِتَّة",7:"سَبعَة",8:"ثَمانِيَة",9:"تِسعَة",10:"عَشَرَة"};
-  return map[n]?map[n]:toArDigits(n);
+  return map[n]? map[n] : toArDigits(n);
 }
-
 function buildFastPhrase(n,w){
-  const z="\u200C"; const num=toArDigits(n);
-  const wnum=(w==null||w==="")?"":fixNumberWord(w);
-  if(!wnum)return`تَذْكِرَةْ رقم${z} ${num}`;
-  return`تَذْكِرَةْ رقم${z} ${num} الرجاء${z} التوجه${z} إلى${z} الشُبّاك رقم${z} ${wnum}`;
+  const z="\u200C";
+  const num = toArDigits(n);
+  const wnum = (w==null || w==="") ? "" : fixNumberWord(Number(w));
+  if(!wnum) return `تَذْكِرَةْ رقم${z} ${num}`;
+  return `تَذْكِرَةْ رقم${z} ${num} الرجاء${z} التوجه${z} إلى${z} الشباك${z} رقم${z} ${wnum}`;
 }
 
-/* ========== عرض التذكرة ========== */
-function updateWindowCard(w,n,ts){
-  const el=document.getElementById(`ticket${w}`);
-  if(el){ el.textContent=n; el.dataset.ts=ts; }
-}
+/* ===== استماع للطابور وتحديث الأعمدة + النطق ===== */
+const processed = new Set();
+const bootTs = Date.now() - 5000;
 
-/* ========== مستمع Firebase ========== */
 db.ref(`${ROOT}/calls`)
   .orderByChild('ts')
-  .on('child_added',snap=>{
-    const v=snap.val()||{};
-    const n=Number(v.number);
-    const w=Number(v.window);
-    if(!n||!w)return;
+  .startAt(bootTs)
+  .on('child_added', async snap=>{
+    const key = snap.key, v = snap.val()||{};
+    if(processed.has(key)) return;
+    processed.add(key);
 
-    updateWindowCard(w,n,v.ts||Date.now());
+    const n = Number(v.number);
+    let w   = v.window ?? v.windowNum ?? v.win ?? v.counter ?? null;
 
-    // 🔊 نطق فوري
-    const phrase=buildFastPhrase(n,w);
+    if (typeof w === 'string') {
+      const p = Number(w); w = Number.isNaN(p) ? null : p;
+    }
+
+    if(!n || !w) return;          // لا نعرض بدون شباك
+    updateWindowCard(w, n, v.ts || Date.now());
+
+    // نطق سريع مثل announcer
+    const phrase = buildFastPhrase(n, w);
     speakOnce(phrase);
   });
+
+/* حمّلي الأصوات إن احتاج */
+window.speechSynthesis.onvoiceschanged = ()=>{ pickArabicVoice(); };
 </script>
 </body>
 </html>
