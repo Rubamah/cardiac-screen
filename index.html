@@ -152,9 +152,12 @@ function buildFastPhrase(n, w) {
   const z = "\u200C";
   const num = toArDigits(n);
   const wnum = (w == null || w === "") ? "" : fixNumberWord(Number(w));
-  if (!wnum) return `تَذْكِرَةْ رقم${z} ${num}`;
-  return `تَذْكِرَةْ رقم${z} ${num} الرجاء${z} التوجه${z} إلى${z} الشباك رقم${z} ${wnum}`;
+
+  if (!wnum)
+    return `تَذْكِرَةُ رقم${z} ${num}`;
+  return `تَذْكِرَةُ${z} رقم${z} ${num} الرجاء${z} التوجه${z} إلى${z} الشُبّاك${z} رقم${z} ${wnum}`;
 }
+
 
 /* ===== عرض الأرقام في الشاشة ===== */
 function updateWindowCard(w, n, ts) {
@@ -181,8 +184,11 @@ db.ref(`${ROOT}/calls`)
     updateWindowCard(w, n, v.ts || Date.now());
 
     // نطق الصوت
-    const phrase = buildFastPhrase(n, w);
-    speakOnce(phrase);
+const phrase = buildFastPhrase(n, w);
+await speakOnce(phrase);
+await new Promise(r => setTimeout(r, 1000)); // فاصل بين النطقين
+await speakOnce(phrase);
+
   });
 </script>
 </body>
