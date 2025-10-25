@@ -2,67 +2,104 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>لوحة النداء</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cardiac Display Screen</title>
 <style>
-  :root{
-    --bg:#0b1324; --panel:#0f172a; --ink:#ffffff;
-    --accent:#38bdf8; --divider:#334155;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0; background:var(--bg); color:var(--ink);
+  body {
+    margin:0;
     font-family:-apple-system,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    display:flex; flex-direction:column; min-height:100vh;
+    background:#f5f7fb;
+    color:#0f172a;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    overflow:hidden;
   }
-  .header{padding:min(2.2vh,24px) min(2vw,24px); text-align:center; background:#111827; border-bottom:2px solid var(--divider);}
-  .header h1{margin:0; font-weight:900; letter-spacing:.5px; font-size:clamp(20px,4.8vw,64px);}
-
-  .rows{flex:1; display:flex; flex-direction:column;}
-  .row{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-       padding:min(2vh,28px) min(2vw,28px); position:relative;}
-  .row + .row{border-top:2.5px solid var(--divider);}
-
-  .label{font-weight:900; opacity:.95; line-height:1.1; margin-bottom:.4em; font-size:clamp(22px,4.2vw,56px);}
-  .ticket{font-weight:900; color:var(--accent); line-height:1; letter-spacing:.5px; font-size:clamp(42px,16vw,180px);}
-
-  .flash{animation:flash 900ms ease-out;}
-  @keyframes flash{0%{transform:scale(.98); filter:brightness(1.6);} 100%{transform:scale(1); filter:brightness(1);}}
+  h1 {
+    font-size:clamp(40px,5vw,60px);
+    margin-bottom:30px;
+    font-weight:900;
+  }
+  .rows {
+    display:flex;
+    flex-direction:column;
+    justify-content:space-evenly;
+    align-items:center;
+    width:90%;
+    height:70%;
+  }
+  .row {
+    flex:1;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    background:#fff;
+    border-radius:20px;
+    margin:10px 0;
+    box-shadow:0 0 20px rgba(0,0,0,0.1);
+    border:3px solid #e5e7eb;
+  }
+  .window {
+    font-size:clamp(36px,4vw,50px);
+    font-weight:800;
+    color:#2563eb;
+    margin-bottom:10px;
+  }
+  .ticket {
+    font-size:clamp(80px,10vw,150px);
+    font-weight:900;
+    color:#111;
+  }
+  #soundGate {
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.85);
+    color:#fff;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
+    font-size:22px;
+    text-align:center;
+  }
+  #soundGate button {
+    margin-top:14px;
+    padding:10px 18px;
+    border:0;
+    border-radius:10px;
+    background:#2563eb;
+    color:#fff;
+    font-weight:800;
+    cursor:pointer;
+    font-size:20px;
+  }
 </style>
 
-<!-- Firebase compat -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 </head>
 <body>
 
-<!-- زر تفعيل الصوت مرّة واحدة -->
-<div id="soundGate" style="position:fixed;inset:0;background:#000a;color:#fff;display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column">
-  <div style="font-size:clamp(16px,3.6vw,28px);margin-bottom:12px">اضغط “تفعيل الصوت” للسماح بالنطق</div>
-  <button id="enableBtn" style="padding:12px 18px;border:0;border-radius:10px;background:#2563eb;color:#fff;font-weight:800;cursor:pointer;font-size:clamp(14px,3.2vw,20px)">تفعيل الصوت</button>
+<div id="soundGate">
+  <div>اضغط "تفعيل الصوت" مرة واحدة للسماح بالنطق الصوتي</div>
+  <button id="enableBtn">تفعيل الصوت</button>
 </div>
 
-<div class="header"><h1>النداء الحالي</h1></div>
-
-<div class="rows">
-  <div class="row" id="w1">
-    <div class="label">شباك ١</div>
-    <div class="ticket" id="t1">—</div>
-  </div>
-  <div class="row" id="w2">
-    <div class="label">شباك ٢</div>
-    <div class="ticket" id="t2">—</div>
-  </div>
-  <div class="row" id="w3">
-    <div class="label">شباك ٣</div>
-    <div class="ticket" id="t3">—</div>
-  </div>
+<h1>النداء الحالي</h1>
+<div class="rows" id="rows">
+  <div class="row"><div class="window">شباك ١</div><div class="ticket" id="w1">-</div></div>
+  <div class="row"><div class="window">شباك ٢</div><div class="ticket" id="w2">-</div></div>
+  <div class="row"><div class="window">شباك ٣</div><div class="ticket" id="w3">-</div></div>
 </div>
 
 <script>
-/* ===== Firebase ===== */
-const cfg={
+/* ========== Firebase ========== */
+const cfg = {
   apiKey:"AIzaSyCWWnMsge75Q3_MDF9Aj9wo4C5KD6RVGfw",
   authDomain:"q-matic-b7d77.firebaseapp.com",
   databaseURL:"https://q-matic-b7d77-default-rtdb.firebaseio.com",
@@ -72,68 +109,78 @@ const cfg={
   appId:"1:908187704899:web:b8bcf33cda90bafe81bef6"
 };
 firebase.initializeApp(cfg);
-const db   = firebase.database();
-const ROOT = "cardiac_demo";
+const db=firebase.database();
+const ROOT="cardiac_demo";
 
-/* ===== أدوات عرض ===== */
-function toArDigits(n){ return String(n).replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]); }
-function flash(el){ el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
-
-/* ===== الصوت (نفس إعدادات announcer) ===== */
-let ttsReady=false;
-document.getElementById('enableBtn').onclick=()=>{
-  try{ speechSynthesis.cancel(); }catch(e){}
-  ttsReady=true;
-  document.getElementById('soundGate').style.display='none';
+/* ===== الصوت (مطابق تمامًا للـ announcer) ===== */
+let ttsReady = false;
+document.getElementById('enableBtn').onclick = () => {
+  try { speechSynthesis.cancel(); } catch(e) {}
+  ttsReady = true;
+  document.getElementById('soundGate').style.display = 'none';
 };
-function speakOnce(text){
-  return new Promise(resolve=>{
-    if(!ttsReady || !('speechSynthesis' in window)){ resolve(); return; }
-    text = text.replace(/[ٌٍْـ]/g,"").replace(/\s+/g," ").trim(); // إزالة التنوين والسكون
+
+function speakOnce(text) {
+  return new Promise(resolve => {
+    if (!ttsReady || !('speechSynthesis' in window)) { resolve(); return; }
+    text = text.replace(/[ٌٍْـ]/g, "").replace(/\s+/g, " ").trim();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang='ar-SA'; u.rate=1.1; u.pitch=1.0;
-    const voices=speechSynthesis.getVoices()||[];
-    const v = voices.find(v=>/naayf|naif|hoda|maged|arabic/i.test(v.name))
-         || voices.find(v=>/ar(-|_)?[A-Z]{2}/i.test(v.lang))
-         || voices[0];
-    if(v) u.voice=v;
-    u.onend=resolve; u.onerror=resolve;
+    u.lang = 'ar-SA';
+    u.rate = 1.1;
+    u.pitch = 1.0;
+    const voices = speechSynthesis.getVoices();
+    const v = voices.find(v => /naayf|naif|hoda|maged|arabic/i.test(v.name)) ||
+              voices.find(v => /ar(-|_)?[A-Z]{2}/i.test(v.lang)) ||
+              voices[0];
+    if (v) u.voice = v;
+    u.onend = resolve;
+    u.onerror = resolve;
     speechSynthesis.speak(u);
   });
 }
-function fixNumberWord(n){
-  const map={1:"واحِد",2:"اِثنان",3:"ثَلاثَة",4:"أَربَعَة",5:"خَمسَة",6:"سِتَّة",7:"سَبعَة",8:"ثَمانِيَة",9:"تِسعَة",10:"عَشَرَة"};
-  return map[n]?map[n]:toArDigits(n);
+
+function fixNumberWord(n) {
+  const map = {
+    1: "واحِد", 2: "اِثنان", 3: "ثَلاثَة", 4: "أَربَعَة", 5: "خَمسَة",
+    6: "سِتَّة", 7: "سَبعَة", 8: "ثَمانِيَة", 9: "تِسعَة", 10: "عَشَرَة"
+  };
+  return map[n] ? map[n] : toArDigits(n);
 }
-function buildFastPhrase(n,w){
-  const z="\u200C";
+function toArDigits(n){return String(n).replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]);}
+
+function buildFastPhrase(n, w) {
+  const z = "\u200C";
   const num = toArDigits(n);
-  const wnum = (w==null||w==="")? "": fixNumberWord(Number(w));
-  if(!wnum) return `تَذْكِرَةْ رقم${z} ${num}`;
+  const wnum = (w == null || w === "") ? "" : fixNumberWord(Number(w));
+  if (!wnum) return `تَذْكِرَةْ رقم${z} ${num}`;
   return `تَذْكِرَةْ رقم${z} ${num} الرجاء${z} التوجه${z} إلى${z} الشباك رقم${z} ${wnum}`;
 }
 
-/* ===== تحديث الشاشة + نطق الجملة ===== */
-const bootTs = Date.now()-10_000;
+/* ===== عرض الأرقام في الشاشة ===== */
+function updateWindowCard(w, n, ts) {
+  if (!w || w < 1 || w > 3) return;
+  const el = document.getElementById(`w${w}`);
+  if (el) el.textContent = n;
+}
+
+/* ===== استقبال النداءات الجديدة ===== */
+const processed = new Set();
+const bootTs = Date.now() - 5000;
+
 db.ref(`${ROOT}/calls`)
   .orderByChild('ts')
   .startAt(bootTs)
-  .on('child_added', snap=>{
-    const v = snap.val()||{};
+  .on('child_added', async snap => {
+    const key = snap.key, v = snap.val() || {};
+    if (processed.has(key)) return;
+    processed.add(key);
+
     const n = Number(v.number);
-    let   w = v.window ?? v.win ?? v.windowNum ?? v.counter ?? null;
-
-    if (typeof w==='string'){ const p=Number(w); w = Number.isNaN(p)? w.trim(): p; }
-    if (![1,2,3].includes(Number(w))) return;
     if (!n) return;
+    const w = v.window || v.windowNum || v.counter || null;
+    updateWindowCard(w, n, v.ts || Date.now());
 
-    const ticketEl=document.getElementById(`t${w}`);
-    if(!ticketEl) return;
-
-    ticketEl.textContent = toArDigits(n);
-    flash(ticketEl);
-
-    // النطق بنفس أسلوب announcer
+    // نطق الصوت
     const phrase = buildFastPhrase(n, w);
     speakOnce(phrase);
   });
